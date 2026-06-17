@@ -61,6 +61,10 @@ async function loadUsers() {
                     onclick="viewPerms(${u.id}, '${u.username}')">
                     Permissions
                 </button>
+                <button class="btn btn-sm btn-outline-warning ms-1"
+                    onclick="openChangePassword(${u.id}, '${u.username}')">
+                    Reset PW
+                </button>
             </td>
         </tr>`).join('')
     : '<tr><td colspan="6" class="text-center text-muted py-4">No users found</td></tr>';
@@ -102,6 +106,40 @@ async function createUser() {
         const err = await res.json();
         const errDiv = document.getElementById('create-user-error');
         errDiv.textContent = err.detail || 'Error creating user';
+        errDiv.classList.remove('d-none');
+    }
+}
+
+// ─── Change Password ──────────────────────────────────────────────────────────
+
+let _chpwUserId = null;
+
+function openChangePassword(userId, username) {
+    _chpwUserId = userId;
+    document.getElementById('chpw-username').textContent = username;
+    document.getElementById('changePasswordForm').reset();
+    document.getElementById('chpw-error').classList.add('d-none');
+    new bootstrap.Modal(document.getElementById('changePasswordModal')).show();
+}
+
+async function submitPasswordChange() {
+    const newPw     = document.getElementById('chpw-new').value;
+    const confirmPw = document.getElementById('chpw-confirm').value;
+    const errDiv    = document.getElementById('chpw-error');
+
+    if (newPw !== confirmPw) {
+        errDiv.textContent = 'Passwords do not match';
+        errDiv.classList.remove('d-none');
+        return;
+    }
+
+    const res = await apiPatch(`/users/${_chpwUserId}/password`, { new_password: newPw });
+    if (res?.ok) {
+        bootstrap.Modal.getInstance(document.getElementById('changePasswordModal')).hide();
+        showToast('Password changed successfully');
+    } else {
+        const err = await res.json();
+        errDiv.textContent = err.detail || 'Failed to change password';
         errDiv.classList.remove('d-none');
     }
 }

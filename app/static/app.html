@@ -186,6 +186,35 @@
     </div>
   </div>
 
+  <!-- ── Modal: Change Password ───────────────────────────────────────── -->
+  <div class="modal fade" id="changePasswordModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Change Password — <span id="chpw-username"></span></h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div id="chpw-error" class="alert alert-danger d-none py-2"></div>
+          <form id="changePasswordForm">
+            <div class="mb-3">
+              <label class="form-label">New Password</label>
+              <input type="password" class="form-control" id="chpw-new" placeholder="••••••••" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Confirm Password</label>
+              <input type="password" class="form-control" id="chpw-confirm" placeholder="••••••••" required>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button class="btn btn-warning" onclick="submitPasswordChange()">Change Password</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ── Modal: View Permissions ────────────────────────────────────────── -->
   <div class="modal fade" id="permsModal" tabindex="-1">
     <div class="modal-dialog">

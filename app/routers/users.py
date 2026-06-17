@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app import models
-from app.schemas import UserCreate, UserOut, UserUpdate, UserPermissionsOut, PermissionCheckOut
+from app.schemas import UserCreate, UserOut, UserUpdate, UserPermissionsOut, PermissionCheckOut, PasswordChange
 from app.auth.security import hash_password, get_current_user
 from app.logging_utils import log_action
 
@@ -79,6 +79,25 @@ def delete_user(
     db.delete(user)
     db.commit()
     log_action(db, action=f"delete_user:{username}", status="success", user_id=current_user.id)
+
+
+@router.patch("/{user_id}/password", response_model=UserOut)
+def change_password(
+    user_id: int,
+    payload: PasswordChange,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    if len(payload.new_password) < 6:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Password must be at least 6 characters")
+    user.hashed_password = hash_password(payload.new_password)
+    db.commit()
+    db.refresh(user)
+    log_action(db, action=f"change_password:{user.username}", status="success", user_id=current_user.id)
+    return user
 
 
 @router.get("/{user_id}/permissions", response_model=UserPermissionsOut)

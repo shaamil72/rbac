@@ -69,6 +69,10 @@ class PermissionCheckOut(BaseModel):
     has_permission: bool
 
 
+class PasswordChange(BaseModel):
+    new_password: str
+
+
 class Token(BaseModel):
     access_token: str
     token_type: str
