@@ -65,6 +65,10 @@ async function loadUsers() {
                     onclick="openChangePassword(${u.id}, '${u.username}')">
                     Reset PW
                 </button>
+                <button class="btn btn-sm btn-outline-danger ms-1"
+                    onclick="deleteUser(${u.id}, '${u.username}')">
+                    Delete
+                </button>
             </td>
         </tr>`).join('')
     : '<tr><td colspan="6" class="text-center text-muted py-4">No users found</td></tr>';
@@ -107,6 +111,20 @@ async function createUser() {
         const errDiv = document.getElementById('create-user-error');
         errDiv.textContent = err.detail || 'Error creating user';
         errDiv.classList.remove('d-none');
+    }
+}
+
+// ─── Delete User ──────────────────────────────────────────────────────────────
+
+async function deleteUser(userId, username) {
+    if (!confirm(`Permanently delete user "${username}"? This cannot be undone.`)) return;
+    const res = await apiDelete(`/users/${userId}`);
+    if (res?.ok || res?.status === 204) {
+        showToast(`User "${username}" deleted`, 'danger');
+        loadUsers();
+    } else {
+        const err = await res.json();
+        showToast(err.detail || 'Failed to delete user', 'danger');
     }
 }
 
