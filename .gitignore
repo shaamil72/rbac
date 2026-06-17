@@ -1,0 +1,25 @@
+# Database — never commit this, it contains real user data
+*.db
+*.sqlite3
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+
+# Environment variables (secrets)
+.env
+.env.*
+
+# Claude Code
+.claude/
