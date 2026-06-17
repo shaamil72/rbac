@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RBAC Admin</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/static/css/style.css" rel="stylesheet">
+</head>
+<body>
+
+  <!-- ── Sidebar ────────────────────────────────────────────────────────── -->
+  <nav class="sidebar">
+    <div class="sidebar-brand">
+      <h5>RBAC Admin</h5>
+      <small>Signed in as <span id="current-user"></span></small>
+    </div>
+    <ul class="nav flex-column mt-2">
+      <li class="nav-item">
+        <a class="nav-link" data-section="users" href="#">
+          <span class="icon">👤</span> Users
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" data-section="roles" href="#">
+          <span class="icon">🏷️</span> Roles
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" data-section="permissions" href="#">
+          <span class="icon">🔑</span> Permissions
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" data-section="logs" href="#">
+          <span class="icon">📋</span> Access Logs
+        </a>
+      </li>
+    </ul>
+    <div class="sidebar-footer">
+      <a href="/docs" target="_blank" class="btn btn-outline-secondary btn-sm w-100 mb-2">API Docs ↗</a>
+      <button onclick="logout()" class="btn btn-outline-danger btn-sm w-100">Sign Out</button>
+    </div>
+  </nav>
+
+  <!-- ── Main content ───────────────────────────────────────────────────── -->
+  <main class="main-content">
+
+    <!-- Users -->
+    <div id="section-users" class="section">
+      <div class="page-header">
+        <h4>Users</h4>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createUserModal">
+          + New User
+        </button>
+      </div>
+      <div class="table-card">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th>ID</th><th>Username</th><th>Email</th>
+              <th>Status</th><th>Roles</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="users-tbody">
+            <tr><td colspan="6" class="text-center text-muted py-4">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Roles -->
+    <div id="section-roles" class="section">
+      <div class="page-header"><h4>Roles</h4></div>
+      <div class="table-card">
+        <table class="table table-hover">
+          <thead>
+            <tr><th>ID</th><th>Name</th><th>Description</th><th>Permissions</th></tr>
+          </thead>
+          <tbody id="roles-tbody">
+            <tr><td colspan="4" class="text-center text-muted py-4">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Permissions -->
+    <div id="section-permissions" class="section">
+      <div class="page-header">
+        <h4>Permissions</h4>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createPermModal">
+          + New Permission
+        </button>
+      </div>
+      <div class="table-card">
+        <table class="table table-hover">
+          <thead>
+            <tr><th>ID</th><th>Name</th><th>Resource</th></tr>
+          </thead>
+          <tbody id="permissions-tbody">
+            <tr><td colspan="3" class="text-center text-muted py-4">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Logs -->
+    <div id="section-logs" class="section">
+      <div class="page-header">
+        <h4>Access Logs</h4>
+        <button class="btn btn-outline-secondary btn-sm" onclick="loadLogs()">↻ Refresh</button>
+      </div>
+      <div class="table-card">
+        <table class="table table-hover">
+          <thead>
+            <tr><th>ID</th><th>User ID</th><th>Action</th><th>Status</th><th>Timestamp</th></tr>
+          </thead>
+          <tbody id="logs-tbody">
+            <tr><td colspan="5" class="text-center text-muted py-4">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ── Modal: Create User ─────────────────────────────────────────────── -->
+  <div class="modal fade" id="createUserModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">New User</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div id="create-user-error" class="alert alert-danger d-none py-2"></div>
+          <form id="createUserForm">
+            <div class="mb-3">
+              <label class="form-label">Username</label>
+              <input type="text" class="form-control" id="new-username" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Email</label>
+              <input type="email" class="form-control" id="new-email" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Password</label>
+              <input type="password" class="form-control" id="new-password" required>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button class="btn btn-primary" onclick="createUser()">Create User</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Modal: Create Permission ───────────────────────────────────────── -->
+  <div class="modal fade" id="createPermModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">New Permission</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div id="create-perm-error" class="alert alert-danger d-none py-2"></div>
+          <form id="createPermForm">
+            <div class="mb-3">
+              <label class="form-label">Name <span class="text-muted">(e.g. read:reports)</span></label>
+              <input type="text" class="form-control" id="new-perm-name" placeholder="read:reports" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Resource <span class="text-muted">(e.g. reports)</span></label>
+              <input type="text" class="form-control" id="new-perm-resource" placeholder="reports" required>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button class="btn btn-primary" onclick="createPermission()">Create Permission</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Modal: View Permissions ────────────────────────────────────────── -->
+  <div class="modal fade" id="permsModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="perms-modal-title">Permissions</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body" id="perms-modal-body"></div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Toast ──────────────────────────────────────────────────────────── -->
+  <div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div id="toast" class="toast align-items-center border-0" role="alert">
+      <div class="d-flex">
+        <div class="toast-body" id="toast-body"></div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/static/js/api.js"></script>
+  <script src="/static/js/app.js"></script>
+</body>
+</html>

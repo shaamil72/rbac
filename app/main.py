@@ -1,4 +1,6 @@
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from app.database import engine
 from app import models
 from app.routers import auth, users, roles, permissions, logs
@@ -17,7 +19,14 @@ app.include_router(roles.router)
 app.include_router(permissions.router)
 app.include_router(logs.router)
 
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
-@app.get("/", tags=["Health"])
-def root():
-    return {"status": "ok", "docs": "/docs"}
+
+@app.get("/", include_in_schema=False)
+def serve_login():
+    return FileResponse("app/static/login.html")
+
+
+@app.get("/app", include_in_schema=False)
+def serve_app():
+    return FileResponse("app/static/app.html")

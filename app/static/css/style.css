@@ -1,0 +1,107 @@
+/* Layout */
+.sidebar {
+  width: 230px;
+  min-height: 100vh;
+  background: #212529;
+  position: fixed;
+  top: 0; left: 0;
+  display: flex;
+  flex-direction: column;
+  z-index: 100;
+}
+
+.sidebar-brand {
+  padding: 1.25rem 1.25rem 1rem;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.sidebar-brand h5 { color: #fff; margin: 0; font-weight: 700; letter-spacing: 0.5px; }
+.sidebar-brand small { color: rgba(255,255,255,0.45); font-size: 0.75rem; }
+
+.sidebar .nav-link {
+  color: rgba(255,255,255,0.6);
+  padding: 0.65rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  border-radius: 0;
+  transition: all 0.15s;
+}
+
+.sidebar .nav-link:hover { color: #fff; background: rgba(255,255,255,0.07); }
+.sidebar .nav-link.active { color: #fff; background: #0d6efd; }
+.sidebar .nav-link .icon { font-size: 1rem; width: 1.2rem; text-align: center; }
+
+.sidebar-footer {
+  margin-top: auto;
+  padding: 1rem 1.25rem;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+.sidebar-footer .btn { font-size: 0.8rem; }
+
+.main-content {
+  margin-left: 230px;
+  padding: 2rem 2.5rem;
+  min-height: 100vh;
+  background: #f5f6fa;
+}
+
+/* Section visibility */
+.section { display: none; }
+.section.active { display: block; }
+
+/* Page header */
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.page-header h4 { margin: 0; font-weight: 600; color: #212529; }
+
+/* Table card */
+.table-card {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+  overflow: hidden;
+}
+
+.table { margin: 0; font-size: 0.875rem; }
+.table thead th {
+  background: #f8f9fa;
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #6c757d;
+  border-bottom: 1px solid #dee2e6;
+  padding: 0.85rem 1rem;
+}
+
+.table td { padding: 0.75rem 1rem; vertical-align: middle; }
+.table tbody tr:last-child td { border-bottom: none; }
+
+/* Badges */
+.badge-role { font-size: 0.7rem; font-weight: 500; margin: 1px; }
+
+/* Status */
+.status-success { color: #198754; font-weight: 500; }
+.status-failure { color: #dc3545; font-weight: 500; }
+
+/* Toast */
+.toast-container { z-index: 1100; }
+
+/* Perm badge in modal */
+.perm-badge {
+  display: inline-block;
+  background: #e9ecef;
+  color: #495057;
+  padding: 0.3rem 0.65rem;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  margin: 3px;
+  font-family: monospace;
+}
