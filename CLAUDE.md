@@ -98,7 +98,7 @@ No role hierarchy (roles don't nest or inherit from each other).
 ## Key known gaps (before production use)
 
 1. **JWT secret is hardcoded** in `app/auth/security.py` — must move to `.env`
-2. **No backend permission enforcement** — endpoints only check that a valid JWT exists; specific permissions (e.g. only admins can delete users) are not enforced server-side. Frontend controls this via UI only
+2. **No backend permission enforcement** ~~— endpoints only check that a valid JWT exists~~. Resolved: all endpoints now use `require_permission()` from `app/auth/security.py`. See the permission map in Conventions below.
 3. **No test suite** — no pytest files or test directory exist
 4. **No migrations** — schema changes require manual DB deletion and re-seed
 5. **No .env file** — secrets live directly in source code
@@ -110,3 +110,12 @@ No role hierarchy (roles don't nest or inherit from each other).
 - Use `Depends(get_current_user)` on every endpoint that requires authentication
 - Pydantic schemas live in `schemas.py` — request models (input) and response models (output) are separate classes
 - Junction tables (`user_roles`, `role_permissions`) are defined in `models.py` as `Table` objects, not as ORM classes
+- **Permission map** — use `Depends(require_permission("<name>"))` on every endpoint:
+  - `read:users` → GET /users, GET /users/{id}, GET /users/{id}/permissions*
+  - `write:users` → POST /users, PATCH /users/{id}, PATCH /users/{id}/password, POST/DELETE /users/{id}/roles/{role_id}
+  - `delete:users` → DELETE /users/{id}
+  - `read:roles` → GET /roles, GET /roles/{id}
+  - `write:roles` → POST /roles, DELETE /roles/{id}, POST/DELETE /roles/{id}/permissions/{perm_id}
+  - `read:permissions` → GET /permissions, GET /permissions/{id}
+  - `write:permissions` → POST /permissions, DELETE /permissions/{id}
+  - `read:logs` → GET /logs

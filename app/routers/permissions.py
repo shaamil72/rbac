@@ -3,14 +3,14 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app import models
 from app.schemas import PermissionCreate, PermissionOut
-from app.auth.security import get_current_user
+from app.auth.security import get_current_user, require_permission
 from app.logging_utils import log_action
 
 router = APIRouter(prefix="/permissions", tags=["Permissions"])
 
 
 @router.get("", response_model=list[PermissionOut])
-def list_permissions(db: Session = Depends(get_db), _: models.User = Depends(get_current_user)):
+def list_permissions(db: Session = Depends(get_db), _: models.User = Depends(require_permission("read:permissions"))):
     return db.query(models.Permission).all()
 
 
@@ -18,7 +18,7 @@ def list_permissions(db: Session = Depends(get_db), _: models.User = Depends(get
 def create_permission(
     payload: PermissionCreate,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user),
+    current_user: models.User = Depends(require_permission("write:permissions")),
 ):
     if db.query(models.Permission).filter(models.Permission.name == payload.name).first():
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Permission already exists")
@@ -34,7 +34,7 @@ def create_permission(
 def get_permission(
     permission_id: int,
     db: Session = Depends(get_db),
-    _: models.User = Depends(get_current_user),
+    _: models.User = Depends(require_permission("read:permissions")),
 ):
     perm = db.query(models.Permission).filter(models.Permission.id == permission_id).first()
     if not perm:
@@ -46,7 +46,7 @@ def get_permission(
 def delete_permission(
     permission_id: int,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user),
+    current_user: models.User = Depends(require_permission("write:permissions")),
 ):
     perm = db.query(models.Permission).filter(models.Permission.id == permission_id).first()
     if not perm:

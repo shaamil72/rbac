@@ -3,14 +3,14 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app import models
 from app.schemas import RoleCreate, RoleOut
-from app.auth.security import get_current_user
+from app.auth.security import get_current_user, require_permission
 from app.logging_utils import log_action
 
 router = APIRouter(prefix="/roles", tags=["Roles"])
 
 
 @router.get("", response_model=list[RoleOut])
-def list_roles(db: Session = Depends(get_db), _: models.User = Depends(get_current_user)):
+def list_roles(db: Session = Depends(get_db), _: models.User = Depends(require_permission("read:roles"))):
     return db.query(models.Role).all()
 
 
@@ -18,7 +18,7 @@ def list_roles(db: Session = Depends(get_db), _: models.User = Depends(get_curre
 def create_role(
     payload: RoleCreate,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user),
+    current_user: models.User = Depends(require_permission("write:roles")),
 ):
     if db.query(models.Role).filter(models.Role.name == payload.name).first():
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Role already exists")
@@ -31,7 +31,7 @@ def create_role(
 
 
 @router.get("/{role_id}", response_model=RoleOut)
-def get_role(role_id: int, db: Session = Depends(get_db), _: models.User = Depends(get_current_user)):
+def get_role(role_id: int, db: Session = Depends(get_db), _: models.User = Depends(require_permission("read:roles"))):
     role = db.query(models.Role).filter(models.Role.id == role_id).first()
     if not role:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Role not found")
@@ -42,7 +42,7 @@ def get_role(role_id: int, db: Session = Depends(get_db), _: models.User = Depen
 def delete_role(
     role_id: int,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user),
+    current_user: models.User = Depends(require_permission("write:roles")),
 ):
     role = db.query(models.Role).filter(models.Role.id == role_id).first()
     if not role:
@@ -58,7 +58,7 @@ def assign_permission(
     role_id: int,
     permission_id: int,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user),
+    current_user: models.User = Depends(require_permission("write:roles")),
 ):
     role = db.query(models.Role).filter(models.Role.id == role_id).first()
     perm = db.query(models.Permission).filter(models.Permission.id == permission_id).first()
@@ -77,7 +77,7 @@ def remove_permission(
     role_id: int,
     permission_id: int,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user),
+    current_user: models.User = Depends(require_permission("write:roles")),
 ):
     role = db.query(models.Role).filter(models.Role.id == role_id).first()
     perm = db.query(models.Permission).filter(models.Permission.id == permission_id).first()

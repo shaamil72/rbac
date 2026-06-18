@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app import models
 from app.schemas import UserCreate, UserOut, UserUpdate, UserPermissionsOut, PermissionCheckOut, PasswordChange
-from app.auth.security import hash_password, get_current_user
+from app.auth.security import hash_password, get_current_user, require_permission
 from app.logging_utils import log_action
 
 router = APIRouter(prefix="/users", tags=["Users"])
@@ -11,7 +11,7 @@ router = APIRouter(prefix="/users", tags=["Users"])
 
 
 @router.get("", response_model=list[UserOut])
-def list_users(db: Session = Depends(get_db), _: models.User = Depends(get_current_user)):
+def list_users(db: Session = Depends(get_db), _: models.User = Depends(require_permission("read:users"))):
     return db.query(models.User).all()
 
 
@@ -19,7 +19,7 @@ def list_users(db: Session = Depends(get_db), _: models.User = Depends(get_curre
 def create_user(
     payload: UserCreate,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user),
+    current_user: models.User = Depends(require_permission("write:users")),
 ):
     conflict = db.query(models.User).filter(
         (models.User.username == payload.username) | (models.User.email == payload.email)
@@ -39,7 +39,7 @@ def create_user(
 
 
 @router.get("/{user_id}", response_model=UserOut)
-def get_user(user_id: int, db: Session = Depends(get_db), _: models.User = Depends(get_current_user)):
+def get_user(user_id: int, db: Session = Depends(get_db), _: models.User = Depends(require_permission("read:users"))):
     user = db.query(models.User).filter(models.User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
@@ -51,7 +51,7 @@ def update_user(
     user_id: int,
     payload: UserUpdate,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user),
+    current_user: models.User = Depends(require_permission("write:users")),
 ):
     user = db.query(models.User).filter(models.User.id == user_id).first()
     if not user:
@@ -70,7 +70,7 @@ def update_user(
 def delete_user(
     user_id: int,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user),
+    current_user: models.User = Depends(require_permission("delete:users")),
 ):
     user = db.query(models.User).filter(models.User.id == user_id).first()
     if not user:
@@ -86,7 +86,7 @@ def change_password(
     user_id: int,
     payload: PasswordChange,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user),
+    current_user: models.User = Depends(require_permission("write:users")),
 ):
     user = db.query(models.User).filter(models.User.id == user_id).first()
     if not user:
@@ -104,7 +104,7 @@ def change_password(
 def get_user_permissions(
     user_id: int,
     db: Session = Depends(get_db),
-    _: models.User = Depends(get_current_user),
+    _: models.User = Depends(require_permission("read:users")),
 ):
     user = db.query(models.User).filter(models.User.id == user_id).first()
     if not user:
@@ -124,7 +124,7 @@ def check_user_permission(
     user_id: int,
     permission: str,
     db: Session = Depends(get_db),
-    _: models.User = Depends(get_current_user),
+    _: models.User = Depends(require_permission("read:users")),
 ):
     user = db.query(models.User).filter(models.User.id == user_id).first()
     if not user:
@@ -147,7 +147,7 @@ def assign_role(
     user_id: int,
     role_id: int,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user),
+    current_user: models.User = Depends(require_permission("write:users")),
 ):
     user = db.query(models.User).filter(models.User.id == user_id).first()
     role = db.query(models.Role).filter(models.Role.id == role_id).first()
@@ -166,7 +166,7 @@ def remove_role(
     user_id: int,
     role_id: int,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user),
+    current_user: models.User = Depends(require_permission("write:users")),
 ):
     user = db.query(models.User).filter(models.User.id == user_id).first()
     role = db.query(models.Role).filter(models.Role.id == role_id).first()

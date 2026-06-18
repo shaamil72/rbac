@@ -52,3 +52,19 @@ def get_current_user(
     if not user or not user.is_active:
         raise exc
     return user
+
+
+def require_permission(permission: str):
+    def check(current_user: models.User = Depends(get_current_user)) -> models.User:
+        has = any(
+            perm.name == permission
+            for role in current_user.roles
+            for perm in role.permissions
+        )
+        if not has:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Permission required: {permission}",
+            )
+        return current_user
+    return check
